@@ -4,3 +4,5 @@
 dist
 downloads
 src/*.egg-info
+
+.ropeproject/*
