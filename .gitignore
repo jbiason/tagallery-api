@@ -1,0 +1,6 @@
+*.pyc
+*.sw?
+
+dist
+downloads
+src/*.egg-info
