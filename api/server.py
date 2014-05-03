@@ -43,22 +43,45 @@ db = orm.Database("sqlite", app.config['SQLITE_FILENAME'], create_db=True)
 
 
 class Image(db.Entity):
+    """Image storage."""
+    #: image id
     id = orm.PrimaryKey(int)
+
+    #: title for the image
     title = orm.Optional(unicode)
+
+    #: list of tags for the image
     tags = orm.Set("Tag")
+
+    #: date when the image was added to the database (not upload date)
     created_at = orm.Required(datetime)
+
+    #: filename; does not include the image directory or the partitioning
     filename = orm.Required(str, unique=True)
 
 
 class Tag(db.Entity):
+    """Image tags."""
+    #: tag id
     id = orm.PrimaryKey(int)
+
+    #: the tag itself
     tag = orm.Required(unicode)
+
+    #: images with this tag
     images = orm. Set(Image)
 
 
 class User(db.Entity):
+    """Users."""
+    #: login/username
     login = orm.Required(str, unique=True)
+
+    #: password
     password = orm.Required(str)
+
+    #: last token issued to this user
+    token = orm.Optional(str)
 
 
 if app.config['DEBUG']:
