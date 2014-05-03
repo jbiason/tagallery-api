@@ -7,7 +7,7 @@ import logging
 
 from flask.ext.script import Manager
 
-from .api.server import app
+from api.server import app
 
 manager = Manager(app)
 
