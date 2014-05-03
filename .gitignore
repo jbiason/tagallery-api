@@ -8,3 +8,8 @@ src/*.egg-info
 .ropeproject/*
 
 .venv
+
+coverage.*
+.coverage
+
+*.sqlite

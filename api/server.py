@@ -89,9 +89,13 @@ if app.config['DEBUG']:
 
 db.generate_mapping(create_tables=True)
 
+
 # ----------------------------------------------------------------------
-#  Blueprints
+#  Blueprints/Classy
 # ----------------------------------------------------------------------
+from classy.token import TokenView
+
+TokenView.register(app)
 
 
 # ----------------------------------------------------------------------
@@ -99,4 +103,4 @@ db.generate_mapping(create_tables=True)
 # ----------------------------------------------------------------------
 @app.errorhandler(TagalleryException)
 def handle_tagallery_exception(error):
-    return repr(error)
+    return error.response()

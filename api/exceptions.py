@@ -36,8 +36,22 @@ class TagalleryException(Exception):
                 'message': self.message,
                 'code': code}
 
-    def __repr__(self):
-        """Exception representation. Returns the exception in JSON format."""
+    def response(self):
+        """Return the exception in a Response format."""
         response = jsonify(self.json())
         response.status_code = self.status
         return response
+
+
+class TagalleryMissingLoginInformationException(TagalleryException):
+    """The login information (user/password) is missing."""
+    def __init__(self):
+        self.status = 401
+        self.message = 'Missing login information'
+
+
+class TagalleryNoSuchUserException(TagalleryException):
+    """The username + password doesn't exist."""
+    def __init__(self):
+        self.status = 400
+        self.message = "Username/password doesn't exist"

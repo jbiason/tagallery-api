@@ -9,6 +9,8 @@ from flask.ext.script import Manager
 
 from api.server import app
 
+from api.utils import crypto
+
 manager = Manager(app)
 
 
@@ -31,17 +33,14 @@ def adduser(user, password):
         print 'Username and password are required'
         return
 
-    import crypt
     from api.server import User
 
     from pony.orm import db_session
     from pony.orm import commit
 
-    salt = user[0] + user[-1]
-    cyphered = crypt.crypt(password, salt)
-
     with db_session:
-        User(login=user, password=cyphered)
+        User(login=user, password=crypto(user,
+                                         password))
         commit()
 
 
