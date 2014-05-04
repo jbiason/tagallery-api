@@ -22,6 +22,7 @@
 import unittest
 import uuid
 import json
+import base64
 
 from pony.orm import db_session
 from pony.orm import commit
@@ -35,18 +36,28 @@ from api.server import User
 from api.utils import crypto
 
 
+def token_header(token):
+    """Create the headers for using the token."""
+    message = '{token}:ignored'.format(token=token)
+    return {'Authorization': 'Basic {code}'.format(
+        code=base64.b64encode(message))}
+
+
 class TagalleryTests(unittest.TestCase):
     """Base class for tagallery tests."""
 
     # ------------------------------------------------------------
     #  Test setup and teardown
     # ------------------------------------------------------------
-    def setUp(self):
+    def setUp(self, **kwargs):
         server.db.drop_all_tables(with_all_data=True)
 
         server.app.config['SQLITE_FILENAME'] = ':memory:'
         server.app.config['TESTING'] = True
         server.app.config['DEBUG'] = True
+
+        if kwargs:
+            server.app.config.update(**kwargs)
 
         server.db.create_tables()
 
@@ -62,11 +73,21 @@ class TagalleryTests(unittest.TestCase):
     def add_user(self, username='TestUser', password='password',
                  with_token=False):
         """Add a new user directly into the database."""
+        token = None
         with db_session:
             user = User(login=username, password=crypto(username, password))
             if with_token:
-                user.token = str(uuid.uuid4())
+                token = str(uuid.uuid4())
+                user.token = token
             commit()
+        return token
+
+    def get(self, url, token=None):
+        """Do a get to the test app, using the token."""
+        headers = {}
+        if token:
+            headers = token_header(token)
+        return self.app.get(url, headers=headers)
 
     # ------------------------------------------------------------
     #  Asserts

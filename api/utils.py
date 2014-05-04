@@ -54,6 +54,8 @@ class Auth(object):
             token = request.authorization.username
             try:
                 user = User.get(token=token)
+                if not user:
+                    raise ObjectNotFound(user, 'token')
             except ObjectNotFound:
                 raise TagalleryInvalidTokenException()
 

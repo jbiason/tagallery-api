@@ -19,6 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import inspect
+import os.path
+
 from base import TagalleryTests
 
 
@@ -26,7 +29,26 @@ class QueueTests(TagalleryTests):
     """Tests for the queue management."""
 
     def setUp(self):
-        super(QueueTests, self).setUp()
+        file_path = os.path.dirname(inspect.getsourcefile(self.__class__))
+        queue_dir = os.path.join(file_path, 'images')
+        super(QueueTests, self).setUp(QUEUE_DIR=queue_dir)
+
+        self.user_token = self.add_user(with_token=True)
+        return
 
     def test_list(self):
         """Get a list of files in the queue."""
+        rv = self.get('/queue/', token=self.user_token)
+
+        expected = {"filelist": [{"filename": "fake_image.png",
+                                  "url": "/queue/display/fake_image.png"
+                                  }
+                                 ]}
+        self.assertJSONOk(rv, **expected)
+        return
+
+    def test_not_auth(self):
+        """Try to get the list without being authenticated."""
+        rv = self.get('/queue/')
+        self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
+        return

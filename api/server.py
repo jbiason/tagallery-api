@@ -90,6 +90,8 @@ if app.config['DEBUG']:
 
 db.generate_mapping(create_tables=True)
 
+app.wsgi_app = orm.db_session(app.wsgi_app)
+
 
 # ----------------------------------------------------------------------
 #  Blueprints/Classy

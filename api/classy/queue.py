@@ -48,12 +48,12 @@ class QueueView(FlaskView):
         filelist = []
         for filename in os.listdir(queue_dir):
             self.log.debug('Found file {filename}'.format(filename=filename))
-            matches = [filename.lowe().endswith(ext) for ext in extensions]
+            matches = [filename.lower().endswith(ext) for ext in extensions]
             if not any(matches):
                 self.log.debug('... ignored')
                 continue
 
-            filelist.append({'filename': 'filename',
+            filelist.append({'filename': filename,
                              'url': url_for('QueueView:display',
                                             filename=filename)})
 
