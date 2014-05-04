@@ -28,9 +28,11 @@ from pony.orm import commit
 
 from api import server
 
-from api.utils import crypto
+from api import exceptions
 
 from api.server import User
+
+from api.utils import crypto
 
 
 class TagalleryTests(unittest.TestCase):
@@ -85,7 +87,7 @@ class TagalleryTests(unittest.TestCase):
                 self.fail('Key {key} not in response'.format(key=key))
 
             if response[key] != expected[key]:
-                self.fail('Key {key} differs: Exepected "{expected}", '
+                self.fail('Key {key} differs: Expected "{expected}", '
                           'response "{response}"'.format(
                               key=key,
                               expected=expected[key],
@@ -113,5 +115,21 @@ class TagalleryTests(unittest.TestCase):
             expected.update(extras)
 
         self.assertStatus(response, 200)
+        self.assertJSON(response, expected)
+        return
+
+    def assertJSONError(self, response, exception):
+        """Assert that the exception is being returned.
+
+        :param response: The test_client response
+        :param exception: Exception code, which is basically the exception
+                          name without the 'Exception' suffix."""
+        # first of all, try to find the exception
+        full_exception_name = exception + 'Exception'
+        exception_cls = getattr(exceptions, full_exception_name)
+        self.assertStatus(response, exception_cls.status)
+
+        expected = {'code': exception,
+                    'message': exception_cls.message}
         self.assertJSON(response, expected)
         return

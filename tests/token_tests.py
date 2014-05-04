@@ -44,6 +44,39 @@ class TokenTests(TagalleryTests):
         self.assertTrue('token' in data)
         return
 
+    def test_missing_login_info(self):
+        """Do not send the login information."""
+        rv = self.app.get('/token/')
+        self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
+        return
+
+    def test_missing_username(self):
+        """Send the login information without username."""
+        message = ':test'
+        headers = {'Authorization': 'Basic {code}'.format(
+            code=base64.b64encode(message))}
+        rv = self.app.get('/token/', headers=headers)
+        self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
+        return
+
+    def test_missing_password(self):
+        """Send the login information without password."""
+        message = 'test:'
+        headers = {'Authorization': 'Basic {code}'.format(
+            code=base64.b64encode(message))}
+        rv = self.app.get('/token/', headers=headers)
+        self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
+        return
+
+    def test_unknown_user(self):
+        """Try to login with an unknown user."""
+        message = 'test:test'
+        headers = {'Authorization': 'Basic {code}'.format(
+            code=base64.b64encode(message))}
+
+        rv = self.app.get('/token/', headers=headers)
+        self.assertJSONError(rv, 'TagalleryNoSuchUser')
+        return
 
 if __name__ == '__main__':
     unittest.main()

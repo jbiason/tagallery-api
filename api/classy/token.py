@@ -62,9 +62,13 @@ class TokenView(FlaskView):
         cyphered = crypto(auth.username, auth.password)
         try:
             user = User.get(login=auth.username, password=cyphered)
+            if not user:
+                raise ObjectNotFound(User, 'login')
         except ObjectNotFound:
             self._log.debug('Cant find the user')
             raise TagalleryNoSuchUserException()
+
+        self._log.debug('User = {user}'.format(user=user))
 
         token = str(uuid.uuid4())
         user.token = token

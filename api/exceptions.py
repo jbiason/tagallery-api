@@ -24,9 +24,8 @@ from flask import jsonify
 
 class TagalleryException(Exception):
     """Generic/base exception."""
-    def __init__(self):
-        self.status = 500
-        self.message = 'Unknown error'
+    status = 500
+    message = 'Unkonwn error'
 
     def json(self):
         """Convert the error information to JSON. If you need to add more
@@ -45,13 +44,17 @@ class TagalleryException(Exception):
 
 class TagalleryMissingLoginInformationException(TagalleryException):
     """The login information (user/password) is missing."""
-    def __init__(self):
-        self.status = 401
-        self.message = 'Missing login information'
+    status = 401
+    message = 'Missing login information'
 
 
 class TagalleryNoSuchUserException(TagalleryException):
     """The username + password doesn't exist."""
-    def __init__(self):
-        self.status = 400
-        self.message = "Username/password doesn't exist"
+    status = 400
+    message = "Username/password doesn't exist"
+
+
+class TagalleryInvalidTokenException(TagalleryException):
+    """The token is invalid."""
+    status = 401
+    message = 'Invalid token'

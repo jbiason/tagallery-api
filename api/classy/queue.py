@@ -19,13 +19,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import logging
+
 from flask import current_app
+from flask import url_for
+from flask import jsonify
+from flask import send_from_directory
 
 from flask.ext.classy import FlaskView
+
+from api.utils import Auth
 
 
 class QueueView(FlaskView):
     """Queue management requests."""
 
+    def __init__(self, *args, **kwargs):
+        super(QueueView, self).__init__(*args, **kwargs)
+        self.log = logging.getLogger('api.classy.queue')
+
+    @Auth
     def get(self):
         """Return the list of files in the queue."""
+        queue_dir = current_app.config['QUEUE_DIR']
+        extensions = current_app.config['IMAGE_EXTENSIONS']
+
+        filelist = []
+        for filename in os.listdir(queue_dir):
+            self.log.debug('Found file {filename}'.format(filename=filename))
+            matches = [filename.lowe().endswith(ext) for ext in extensions]
+            if not any(matches):
+                self.log.debug('... ignored')
+                continue
+
+            filelist.append({'filename': 'filename',
+                             'url': url_for('QueueView:display',
+                                            filename=filename)})
+
+        return jsonify(status='OK',
+                       filelist=filelist)
+
+    def display(self, filename):
+        """Serve a file directly from the queue."""
+        queue_dir = current_app.config['QUEUE_DIR']
+        return send_from_directory(queue_dir, filename)

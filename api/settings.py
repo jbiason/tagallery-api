@@ -37,5 +37,9 @@ class Settings(object):
     #: be a directory inside your "static" path
     IMAGE_DIR = ''
 
+    #: File extensions to be considered an image while scanning the queue
+    #: directory
+    IMAGE_EXTENSIONS = ['jpeg', 'jpg', 'gif', 'png']
+
     #: Name for the SQLite file
     SQLITE_FILENAME = 'tagallery.sqlite'

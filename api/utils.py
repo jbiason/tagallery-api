@@ -20,6 +20,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import crypt
+import uuid
+
+from functools import wraps
+
+from flask import request
+
+from pony.orm import ObjectNotFound
+
+from api.server import User
+
+from api.exceptions import TagalleryMissingLoginInformationException
+from api.exceptions import TagalleryInvalidTokenException
 
 
 def crypto(username, password):
@@ -27,3 +39,26 @@ def crypto(username, password):
     salt = username[0] + username[-1]
     cyphered = crypt.crypt(password, salt)
     return cyphered
+
+
+class Auth(object):
+    """Decorator for forcing authentication in the request."""
+    def __call__(self, func):
+        @wraps(func)
+        def check_auth(*args, **kwargs):
+            if not request.authorization:
+                raise TagalleryMissingLoginInformationException()
+
+            # request informatino requires that the user in the basic auth is,
+            # actually, the token
+            token = request.authorization.username
+            try:
+                user = User.get(token=token)
+            except ObjectNotFound:
+                raise TagalleryInvalidTokenException()
+
+            result = func(*args, **kwargs)
+            user.token = str(uuid.uuid4())
+            result.headers.add('X-NextToken', user.token)
+            return result
+        return check_auth
