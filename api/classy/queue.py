@@ -60,6 +60,7 @@ class QueueView(FlaskView):
         return jsonify(status='OK',
                        filelist=filelist)
 
+    @Auth()
     def get(self, filename):
         """Serve a file directly from the queue."""
         queue_dir = current_app.config['QUEUE_DIR']

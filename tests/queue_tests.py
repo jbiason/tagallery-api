@@ -55,6 +55,12 @@ class QueueTests(TagalleryTests):
 
     def test_get_file(self):
         """Try to retrieve a file."""
-        rv = self.get('/queue/fake_image.png')
+        rv = self.get('/queue/fake_image.png', token=self.user_token)
         self.assertEqual(rv.status_code, 200)
+        return
+
+    def test_get_file_not_authd(self):
+        """Try to retrieve a file without authentication."""
+        rv = self.get('/queue/fake_image.png')
+        self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
         return
