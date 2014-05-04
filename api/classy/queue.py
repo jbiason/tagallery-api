@@ -40,7 +40,7 @@ class QueueView(FlaskView):
         self.log = logging.getLogger('api.classy.queue')
 
     @Auth()
-    def get(self):
+    def index(self):
         """Return the list of files in the queue."""
         queue_dir = current_app.config['QUEUE_DIR']
         extensions = current_app.config['IMAGE_EXTENSIONS']
@@ -54,13 +54,13 @@ class QueueView(FlaskView):
                 continue
 
             filelist.append({'filename': filename,
-                             'url': url_for('QueueView:display',
+                             'url': url_for('QueueView:get',
                                             filename=filename)})
 
         return jsonify(status='OK',
                        filelist=filelist)
 
-    def display(self, filename):
+    def get(self, filename):
         """Serve a file directly from the queue."""
         queue_dir = current_app.config['QUEUE_DIR']
         return send_from_directory(queue_dir, filename)

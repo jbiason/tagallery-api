@@ -41,7 +41,7 @@ class QueueTests(TagalleryTests):
         rv = self.get('/queue/', token=self.user_token)
 
         expected = {"filelist": [{"filename": "fake_image.png",
-                                  "url": "/queue/display/fake_image.png"
+                                  "url": "/queue/fake_image.png"
                                   }
                                  ]}
         self.assertJSONOk(rv, **expected)
@@ -55,6 +55,6 @@ class QueueTests(TagalleryTests):
 
     def test_get_file(self):
         """Try to retrieve a file."""
-        rv = self.get('/queue/display/fake_image.png')
+        rv = self.get('/queue/fake_image.png')
         self.assertEqual(rv.status_code, 200)
         return
