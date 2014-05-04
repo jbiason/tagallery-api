@@ -36,6 +36,7 @@ app = Flask(__name__)
 app.config.from_object(Settings)
 app.config.from_envvar('TAGALLERY_API_CONFIG', True)
 
+
 # ----------------------------------------------------------------------
 #  Database
 # ----------------------------------------------------------------------
@@ -94,8 +95,10 @@ db.generate_mapping(create_tables=True)
 #  Blueprints/Classy
 # ----------------------------------------------------------------------
 from classy.token import TokenView
+from classy.queue import QueueView
 
 TokenView.register(app)
+QueueView.register(app)
 
 
 # ----------------------------------------------------------------------

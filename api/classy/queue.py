@@ -39,7 +39,7 @@ class QueueView(FlaskView):
         super(QueueView, self).__init__(*args, **kwargs)
         self.log = logging.getLogger('api.classy.queue')
 
-    @Auth
+    @Auth()
     def get(self):
         """Return the list of files in the queue."""
         queue_dir = current_app.config['QUEUE_DIR']
