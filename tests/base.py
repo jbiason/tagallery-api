@@ -89,6 +89,13 @@ class TagalleryTests(unittest.TestCase):
             headers = token_header(token)
         return self.app.get(url, headers=headers)
 
+    def post(self, url, content, token=None):
+        """Do a POST to the test app, using the token."""
+        headers = {}
+        if token:
+            headers = token_header(token)
+        return self.app.post(url, data=content, headers=headers)
+
     # ------------------------------------------------------------
     #  Asserts
     # ------------------------------------------------------------

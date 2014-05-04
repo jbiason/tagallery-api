@@ -58,3 +58,15 @@ class TagalleryInvalidTokenException(TagalleryException):
     """The token is invalid."""
     status = 401
     message = 'Invalid token'
+
+
+class TagalleryMissingFileException(TagalleryException):
+    """There is no file in the upload."""
+    status = 400
+    message = 'Missing file'
+
+
+class TagalleryInvalidFileExtensionException(TagalleryException):
+    """The uploaded file comes with an invalid extension."""
+    status = 400
+    message = 'Invalid file format'

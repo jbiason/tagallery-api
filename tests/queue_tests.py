@@ -20,7 +20,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
+import os
 import os.path
+
+from StringIO import StringIO
 
 from base import TagalleryTests
 
@@ -28,12 +31,23 @@ from base import TagalleryTests
 class QueueTests(TagalleryTests):
     """Tests for the queue management."""
 
-    def setUp(self):
-        file_path = os.path.dirname(inspect.getsourcefile(self.__class__))
-        queue_dir = os.path.join(file_path, 'images')
-        super(QueueTests, self).setUp(QUEUE_DIR=queue_dir)
+    @property
+    def path(self):
+        """Return the path for this file."""
+        return os.path.dirname(inspect.getsourcefile(self.__class__))
 
+    def setUp(self):
+        self.queue_dir = os.path.join(self.path, 'images')
+        super(QueueTests, self).setUp(QUEUE_DIR=self.queue_dir)
         self.user_token = self.add_user(with_token=True)
+        self.test_image = 'riker.gif'
+        return
+
+    def tearDown(self):
+        super(QueueTests, self).tearDown()
+        uploaded_image = os.path.join(self.queue_dir, self.test_image)
+        if os.path.exists(uploaded_image):
+            os.unlink(uploaded_image)
         return
 
     def test_list(self):
@@ -63,4 +77,33 @@ class QueueTests(TagalleryTests):
         """Try to retrieve a file without authentication."""
         rv = self.get('/queue/fake_image.png')
         self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
+        return
+
+    def test_upload(self):
+        """Upload a file to the queue."""
+        image = file(os.path.join(self.path, 'templates', self.test_image),
+                     'rb')
+        rv = self.post(url='/queue/',
+                       content={'image': (image, self.test_image)},
+                       token=self.user_token)
+        self.assertStatus(rv, 200)
+
+        # just check if the file is there
+        fullpath = os.path.join(self.queue_dir, self.test_image)
+        self.assertTrue(os.path.exists(fullpath))
+        return
+
+    def test_upload_empty(self):
+        """POST without a file."""
+        rv = self.post(url='/queue/', content=None, token=self.user_token)
+        self.assertJSONError(rv, 'TagalleryMissingFile')
+        return
+
+    def test_invalid_filetype(self):
+        """Try to upload a non-image."""
+        rv = self.post('/queue/',
+                       content={'image': (StringIO('This is not an image'),
+                                          'text.txt')},
+                       token=self.user_token)
+        self.assertJSONError(rv, 'TagalleryInvalidFileExtension')
         return

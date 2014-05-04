@@ -22,14 +22,20 @@
 import os
 import logging
 
+from werkzeug import secure_filename
+
 from flask import current_app
 from flask import url_for
 from flask import jsonify
 from flask import send_from_directory
+from flask import request
 
 from flask.ext.classy import FlaskView
 
 from api.utils import Auth
+
+from api.exceptions import TagalleryMissingFileException
+from api.exceptions import TagalleryInvalidFileExtensionException
 
 
 class QueueView(FlaskView):
@@ -65,3 +71,29 @@ class QueueView(FlaskView):
         """Serve a file directly from the queue."""
         queue_dir = current_app.config['QUEUE_DIR']
         return send_from_directory(queue_dir, filename)
+
+    @Auth()
+    def post(self):
+        """Upload a file to the queue."""
+        if not request.files or not 'image' in request.files:
+            raise TagalleryMissingFileException()
+
+        extensions = current_app.config['IMAGE_EXTENSIONS']
+        storage = current_app.config['QUEUE_DIR']
+
+        fileobj = request.files['image']
+        filename = secure_filename(fileobj.filename)
+
+        matches = [filename.lower().endswith(ext) for ext in extensions]
+        if not any(matches):
+            raise TagalleryInvalidFileExtensionException()
+
+        fullpath = os.path.join(storage, filename)
+        self.log.debug('Saving uploaded file as: {fullpath}'.format(
+            fullpath=fullpath))
+
+        fileobj.save(fullpath)
+
+        return jsonify(status='OK',
+                       filename=filename,
+                       url=url_for('QueueView:get', filename=filename))
