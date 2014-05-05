@@ -19,11 +19,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
 import logging
+import datetime
+import shutil
+
+from flask import request
+from flask import current_app
 
 from flask.ext.classy import FlaskView
 
+from pony.orm import db_session
+
+from api.server import Image
+from api.server import Tag
+
 from api.utils import Auth
+from api.utils import partition
+
+from api.exceptions import TagalleryRequestMustBeJSONException
+from api.exceptions import TagalleryMissingFieldException
+from api.exceptions import TagalleryNotSuchFilenameException
 
 
 class ImageView(FlaskView):
@@ -45,6 +61,58 @@ class ImageView(FlaskView):
     @Auth()
     def post(self):
         """Add a new image."""
+        json = request.get_json(Force=True, silent=True)
+        if not json:
+            raise TagalleryRequestMustBeJSONException()
+
+        # the required fields
+        filename = json.get('filename')
+        if not filename:
+            raise TagalleryMissingFieldException('filename')
+
+        tags = json.get('tags')
+        if not tags:
+            raise TagalleryMissingFieldException('tags')
+
+        tags = set([tag.strip() for tag in tags.split(',') if tag.strip()])
+        if not tags:
+            # there are tags, but they are empty, which basically means the
+            # user just send a bunch of spaces, which is not valid
+            raise TagalleryMissingFieldException('tags')
+
+        # optional fields
+        title = json.get('title', '')
+
+        # check if the file is in the queue
+        queue_dir = current_app.config['QUEUE_DIR']
+        in_queue = os.path.join(queue_dir, filename)
+        if not os.path.exists(in_queue):
+            raise TagalleryNotSuchFilenameException
+
+        # everything in position, try to move the file from the queue to the
+        # final directory
+        created_at = datetime.datetime.utcnow()
+        final = os.path.join(partition(created_at),
+                             filename)
+        shutil.move(in_queue, final)
+
+        with db_session:
+            # convert the tags to their ids
+            tag_ids = []
+            for tag in tags:
+                try:
+                    record = Tag.get(tag=tag)
+                except ObjectNotFound:
+                    record = Tag(tag=tag)
+
+                tag_ids.append(record)
+
+            # save the image
+            Image(title=title,
+                  tags=tag_ids,
+                  created_at=created_at,
+                  filename=filename)
+
         raise NotImplemented
 
     @Auth()

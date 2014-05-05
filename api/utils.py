@@ -21,10 +21,12 @@
 
 import crypt
 import uuid
+import os
 
 from functools import wraps
 
 from flask import request
+from flask import current_app
 
 from pony.orm import ObjectNotFound
 
@@ -39,6 +41,29 @@ def crypto(username, password):
     salt = username[0] + username[-1]
     cyphered = crypt.crypt(password, salt)
     return cyphered
+
+
+def partition(date):
+    """Return the partition directory for the image. If the partition doesn't
+    exist, it will be created.
+
+    :param date: the date the image was created.
+    :type date: py:class:`datetime.datetime`
+
+    :return: the path for the image.
+    :rtype: str"""
+    directory = '{base}/{year}/{month}/{day}/'.format(
+        base=current_app.config['IMAGE_DIR'],
+        year=date.year,
+        month=date.month,
+        day=date.day)
+
+    try:
+        os.makedirs(directory)
+    except IOError:
+        pass        # probably already exists, that's ok
+
+    return directory
 
 
 class Auth(object):

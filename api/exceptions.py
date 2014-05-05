@@ -70,3 +70,32 @@ class TagalleryInvalidFileExtensionException(TagalleryException):
     """The uploaded file comes with an invalid extension."""
     status = 400
     message = 'Invalid file format'
+
+
+class TagalleryRequestMustBeJSONException(TagalleryException):
+    """The request is expected to be a JSON request, but the incoming data is
+    not a valid JSON."""
+    status = 400
+    message = 'Requests must be JSON'
+
+
+class TagalleryMissingFieldException(TagalleryException):
+    """There are missing fields in the request."""
+    status = 400
+    message = 'Missing fields'
+
+    def __init__(self, field):
+        super(TagalleryMissingFieldException, self).__init__()
+        self.field = field
+
+    def json(self):
+        """Convert the exception to JSON."""
+        original = super(TagalleryMissingFieldException, self).json()
+        original['field'] = self.field
+        return original
+
+
+class TagalleryNotSuchFilenameException(TagalleryException):
+    """The filename does not exist in the queue path."""
+    status = 404
+    message = 'No such filename'

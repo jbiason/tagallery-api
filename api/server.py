@@ -58,7 +58,7 @@ class Image(db.Entity):
     created_at = orm.Required(datetime)
 
     #: filename; does not include the image directory or the partitioning
-    filename = orm.Required(str, unique=True)
+    filename = orm.Required(str)
 
 
 class Tag(db.Entity):
