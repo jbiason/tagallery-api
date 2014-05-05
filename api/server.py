@@ -98,9 +98,11 @@ app.wsgi_app = orm.db_session(app.wsgi_app)
 # ----------------------------------------------------------------------
 from classy.token import TokenView
 from classy.queue import QueueView
+from classy.images import ImageView
 
 TokenView.register(app)
 QueueView.register(app)
+ImageView.register(app)
 
 
 # ----------------------------------------------------------------------
