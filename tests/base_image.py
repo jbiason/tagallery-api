@@ -37,7 +37,8 @@ class BaseImage(TagalleryTests):
     def setUp(self):
         self.queue_dir = os.path.join(self.path, 'queue')
         self.image_dir = os.path.join(self.path, 'storage')
-        super(BaseImage, self).setUp(QUEUE_DIR=self.queue_dir)
+        super(BaseImage, self).setUp(QUEUE_DIR=self.queue_dir,
+                                     IMAGE_DIR=self.image_dir)
         self.user_token = self.add_user(with_token=True)
         return
 
