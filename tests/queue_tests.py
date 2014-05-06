@@ -31,17 +31,17 @@ class QueueTests(BaseImage):
 
     def tearDown(self):
         super(QueueTests, self).tearDown()
-        uploaded_image = os.path.join(self.queue_dir, self.test_image)
-        if os.path.exists(uploaded_image):
-            os.unlink(uploaded_image)
         return
 
     def test_list(self):
         """Get a list of files in the queue."""
+        self.add_to_queue('not-image.txt')
+        self.add_to_queue('riker.gif')
+
         rv = self.get('/queue/', token=self.user_token)
 
-        expected = {"filelist": [{"filename": "fake_image.png",
-                                  "url": "/queue/fake_image.png"
+        expected = {"filelist": [{"filename": "riker.gif",
+                                  "url": "/queue/riker.gif"
                                   }
                                  ]}
         self.assertJSONOk(rv, **expected)
@@ -55,27 +55,28 @@ class QueueTests(BaseImage):
 
     def test_get_file(self):
         """Try to retrieve a file."""
-        rv = self.get('/queue/fake_image.png', token=self.user_token)
+        self.add_to_queue('riker.gif')
+        rv = self.get('/queue/riker.gif', token=self.user_token)
         self.assertEqual(rv.status_code, 200)
         return
 
     def test_get_file_not_authd(self):
         """Try to retrieve a file without authentication."""
-        rv = self.get('/queue/fake_image.png')
+        rv = self.get('/queue/riker.gif')
         self.assertJSONError(rv, 'TagalleryMissingLoginInformation')
         return
 
     def test_upload(self):
         """Upload a file to the queue."""
-        image = file(os.path.join(self.path, 'templates', self.test_image),
+        image = file(os.path.join(self.path, 'images', 'riker.gif'),
                      'rb')
         rv = self.post(url='/queue/',
-                       content={'image': (image, self.test_image)},
+                       content={'image': (image, 'riker.gif')},
                        token=self.user_token)
         self.assertStatus(rv, 200)
 
         # just check if the file is there
-        fullpath = os.path.join(self.queue_dir, self.test_image)
+        fullpath = os.path.join(self.queue_dir, 'riker.gif')
         self.assertTrue(os.path.exists(fullpath))
         return
 

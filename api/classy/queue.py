@@ -75,7 +75,7 @@ class QueueView(FlaskView):
     @Auth()
     def post(self):
         """Upload a file to the queue."""
-        if not request.files or not 'image' in request.files:
+        if not request.files or 'image' not in request.files:
             raise TagalleryMissingFileException()
 
         extensions = current_app.config['IMAGE_EXTENSIONS']
@@ -87,6 +87,12 @@ class QueueView(FlaskView):
         matches = [filename.lower().endswith(ext) for ext in extensions]
         if not any(matches):
             raise TagalleryInvalidFileExtensionException()
+
+        # just make sure the queue directory exists
+        try:
+            os.makedirs(storage)
+        except OSError:
+            pass        # already exists
 
         fullpath = os.path.join(storage, filename)
         self.log.debug('Saving uploaded file as: {fullpath}'.format(

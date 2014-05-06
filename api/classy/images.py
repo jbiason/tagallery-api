@@ -62,7 +62,7 @@ class ImageView(FlaskView):
     @Auth()
     def post(self):
         """Add a new image."""
-        json = request.get_json(Force=True, silent=True)
+        json = request.get_json(force=True, silent=True)
         if not json:
             raise TagalleryRequestMustBeJSONException()
 

@@ -21,6 +21,7 @@
 
 import inspect
 import os.path
+import shutil
 
 from base import TagalleryTests
 
@@ -34,8 +35,37 @@ class BaseImage(TagalleryTests):
         return os.path.dirname(inspect.getsourcefile(self.__class__))
 
     def setUp(self):
-        self.queue_dir = os.path.join(self.path, 'images')
+        self.queue_dir = os.path.join(self.path, 'queue')
+        self.image_dir = os.path.join(self.path, 'storage')
         super(BaseImage, self).setUp(QUEUE_DIR=self.queue_dir)
         self.user_token = self.add_user(with_token=True)
-        self.test_image = 'riker.gif'
+        return
+
+    def tearDown(self):
+        super(BaseImage, self).tearDown()
+        self._destroy_dirs()
+        return
+
+    def add_to_queue(self, filename):
+        """Add an image to the image queue."""
+        try:
+            os.makedirs(self.queue_dir)
+        except OSError:
+            pass    # already exists, ignore it
+
+        templates = os.path.join(self.path, 'images', filename)
+        if not os.path.exists(templates):
+            return  # you're dumb, go away
+
+        shutil.copy(templates, self.queue_dir)
+        return
+
+    def _destroy_dirs(self):
+        """Destroy the paths used for queue and images created during the
+        tests."""
+        if os.path.exists(self.queue_dir):
+            shutil.rmtree(self.queue_dir)
+
+        if os.path.exists(self.image_dir):
+            shutil.rmtree(self.image_dir)
         return
