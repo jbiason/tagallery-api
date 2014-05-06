@@ -27,11 +27,15 @@ import shutil
 from flask import request
 from flask import current_app
 from flask import jsonify
+from flask import url_for
+from flask import send_from_directory
 
 from flask.ext.classy import FlaskView
 
 from pony.orm import db_session
+from pony.orm import select
 from pony.orm import ObjectNotFound
+from pony.orm import desc
 
 from api.server import Image
 from api.server import Tag
@@ -52,8 +56,38 @@ class ImageView(FlaskView):
         self._log = logging.getLogger('api.classy.images')
         return
 
+    @db_session
     def index(self):
         """List the images."""
+        # after = request.values.get('after')
+        # per_page = request.values.get('ipp', 15)
+        # tags = request.values.get('tags', '').split(',')
+
+        result = []
+        for image in select(image for image in Image)\
+                .order_by(desc(Image.created_at)):
+            result.append({'id': image.id,
+                           'title': image.title,
+                           'tags': image.tags,
+                           'url': url_for('ImageView:raw',
+                                          image_id=image.id)})
+
+        return jsonify(status='ok',
+                       images=result)
+#   select
+#       images.title
+#   from
+#       images,
+#       tagged,
+#       tags
+#   where
+#       images.uid == tagged.image
+#       AND tagged.tag == tags.uid
+#       AND tags.desc in (:list)
+#   GROUP BY
+#       images.title
+#   HAVING
+#       count(distinct tags.uid) >= :count
         raise NotImplemented
 
     def get(self, image_id):
@@ -114,6 +148,12 @@ class ImageView(FlaskView):
     def delete(self, image_id):
         """Delete an image."""
         raise NotImplemented
+
+    def raw(self, image_id):
+        image = Image[image_id]
+        final = os.path.join(partition(image.created_at),
+                             image.filename)
+        return send_from_directory(final)
 
     def _strip_tags(self, tags):
         """Make sure the tags are correct."""

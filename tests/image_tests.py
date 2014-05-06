@@ -104,3 +104,10 @@ class ImageTests(BaseImage):
                        self.user_token)
         self.assertJSONError(rv, 'TagalleryNotSuchFilename')
         return
+
+    def test_index(self):
+        """Try to get the index."""
+        self.add_to_images('riker.gif', tags=['gif', 'riker'])
+        rv = self.get('/image/')
+        self.fail(rv.data)
+        return

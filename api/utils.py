@@ -43,17 +43,23 @@ def crypto(username, password):
     return cyphered
 
 
-def partition(date):
+def partition(date, base=None):
     """Return the partition directory for the image. If the partition doesn't
     exist, it will be created.
 
     :param date: the date the image was created.
     :type date: py:class:`datetime.datetime`
+    :param base: the base directory to create the partition; if None, the
+                 IMAGE_DIR configuration will be used
+    :type base: str
 
     :return: the path for the image.
     :rtype: str"""
-    directory = '{base}/{year}/{month}/{day}/'.format(
-        base=current_app.config['IMAGE_DIR'],
+    if not base:
+        base = current_app.config['IMAGE_DIR']
+
+    directory = '{base}/{year:04}/{month:02}/{day:02}/'.format(
+        base=base,
         year=date.year,
         month=date.month,
         day=date.day)

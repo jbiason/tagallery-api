@@ -22,8 +22,16 @@
 import inspect
 import os.path
 import shutil
+import datetime
+
+from pony.orm import db_session
 
 from base import TagalleryTests
+
+from api.utils import partition
+
+from api.server import Image
+from api.server import Tag
 
 
 class BaseImage(TagalleryTests):
@@ -59,6 +67,30 @@ class BaseImage(TagalleryTests):
             return  # you're dumb, go away
 
         shutil.copy(templates, self.queue_dir)
+        return
+
+    def add_to_images(self, filename, title=None, tags=None):
+        """Add an image to the final directory."""
+        template = os.path.join(self.path, 'images', filename)
+        if not os.path.exists(template):
+            return
+
+        created_at = datetime.date.today()
+        final = os.path.join(partition(created_at, self.image_dir),
+                             filename)
+        shutil.copy(template, final)
+
+        with db_session:
+            tag_ids = []
+            for tag in tags:
+                tag_rec = Tag.get(tag=tag)
+                if not tag_rec:
+                    tag_rec = Tag(tag=tag)
+
+            Image(title=title or '',
+                  tags=tag_ids,
+                  created_at=created_at,
+                  filename=filename)
         return
 
     def _destroy_dirs(self):
