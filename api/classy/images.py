@@ -66,11 +66,9 @@ class ImageView(FlaskView):
         result = []
         for image in select(image for image in Image)\
                 .order_by(desc(Image.created_at)):
-            result.append({'id': image.id,
-                           'title': image.title,
-                           'tags': image.tags,
-                           'url': url_for('ImageView:raw',
-                                          image_id=image.id)})
+            record = image.to_json()
+            record['url'] = url_for('ImageView:raw', image_id=image.id)
+            result.append(record)
 
         return jsonify(status='ok',
                        images=result)

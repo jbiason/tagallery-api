@@ -65,6 +65,12 @@ class Image(db.Entity):
     #: same day.
     orm.composite_key(created_at, filename)
 
+    def to_json(self):
+        return {'id': self.id,
+                'title': self.title,
+                'filename': self.filename,
+                'tags': [tag.to_json() for tag in self.tags]}
+
 
 class Tag(db.Entity):
     """Image tags."""
@@ -76,6 +82,10 @@ class Tag(db.Entity):
 
     #: images with this tag
     images = orm. Set(Image)
+
+    def to_json(self):
+        return {'id': self.id,
+                'tag': self.tag}
 
 
 class User(db.Entity):

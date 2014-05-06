@@ -86,6 +86,7 @@ class BaseImage(TagalleryTests):
                 tag_rec = Tag.get(tag=tag)
                 if not tag_rec:
                     tag_rec = Tag(tag=tag)
+                tag_ids.append(tag_rec)
 
             Image(title=title or '',
                   tags=tag_ids,
