@@ -82,7 +82,7 @@ class ImageView(FlaskView):
         queue_dir = current_app.config['QUEUE_DIR']
         in_queue = os.path.join(queue_dir, filename)
         if not os.path.exists(in_queue):
-            raise TagalleryNotSuchFilenameException
+            raise TagalleryNotSuchFilenameException()
 
         # everything in position, try to move the file from the queue to the
         # final directory

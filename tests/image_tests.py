@@ -20,6 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import urllib
 
 from base_image import BaseImage
 
@@ -37,4 +38,69 @@ class ImageTests(BaseImage):
                        json.dumps(request),
                        self.user_token)
         self.assertJSONOk(rv)
+        return
+
+    def test_send_non_json(self):
+        """Make a request, but don't use JSON."""
+        self.add_to_queue('riker.gif')
+        request = {'filename': 'riker.gif',
+                   'tags': 'riker,image',
+                   'title': 'riker'}
+        rv = self.post('/image/',
+                       urllib.urlencode(request),
+                       self.user_token)
+        self.assertJSONError(rv, 'TagalleryRequestMustBeJSON')
+        return
+
+    def test_no_filename(self):
+        """Send a request without the filename."""
+        request = {'tags': 'riker,image',
+                   'title': 'riker'}
+        rv = self.post('/image/',
+                       json.dumps(request),
+                       self.user_token)
+        self.assertJSONError(rv, 'TagalleryMissingField')
+        return
+
+    def test_no_tags(self):
+        """Send a request without the tags."""
+        request = {'filename': 'riker.gif',
+                   'title': 'riker'}
+        rv = self.post('/image/',
+                       json.dumps(request),
+                       self.user_token)
+        self.assertJSONError(rv, 'TagalleryMissingField')
+        return
+
+    def test_empty_tags(self):
+        """Send a request with tags, but all empty."""
+        request = {'filename': 'riker.gif',
+                   'tags': ',',
+                   'title': 'riker'}
+        rv = self.post('/image/',
+                       json.dumps(request),
+                       self.user_token)
+        self.assertJSONError(rv, 'TagalleryMissingField')
+        return
+
+    def test_blank_tags(self):
+        """Send a request with tags, but all blank (spaces)."""
+        request = {'filename': 'riker.gif',
+                   'tags': '   ,    ',
+                   'title': 'riker'}
+        rv = self.post('/image/',
+                       json.dumps(request),
+                       self.user_token)
+        self.assertJSONError(rv, 'TagalleryMissingField')
+        return
+
+    def test_no_such_file(self):
+        """Try to save a file that it is not in the queue."""
+        request = {'filename': 'riker.gif',
+                   'tags': 'riker,image',
+                   'title': 'riker'}
+        rv = self.post('/image/',
+                       json.dumps(request),
+                       self.user_token)
+        self.assertJSONError(rv, 'TagalleryNotSuchFilename')
         return
