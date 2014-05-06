@@ -26,6 +26,7 @@ import shutil
 
 from flask import request
 from flask import current_app
+from flask import jsonify
 
 from flask.ext.classy import FlaskView
 
@@ -72,14 +73,7 @@ class ImageView(FlaskView):
             raise TagalleryMissingFieldException('filename')
 
         tags = json.get('tags')
-        if not tags:
-            raise TagalleryMissingFieldException('tags')
-
-        tags = set([tag.strip() for tag in tags.split(',') if tag.strip()])
-        if not tags:
-            # there are tags, but they are empty, which basically means the
-            # user just send a bunch of spaces, which is not valid
-            raise TagalleryMissingFieldException('tags')
+        tags = self._strip_tags(json.get('tags'))
 
         # optional fields
         title = json.get('title', '')
@@ -92,21 +86,16 @@ class ImageView(FlaskView):
 
         # everything in position, try to move the file from the queue to the
         # final directory
-        created_at = datetime.datetime.utcnow()
+        created_at = datetime.date.today()
         final = os.path.join(partition(created_at),
                              filename)
-        # shutil.move(in_queue, final)
+        shutil.move(in_queue, final)
 
         with db_session:
             # convert the tags to their ids
-            tag_ids = []
-            for tag in tags:
-                try:
-                    record = Tag.get(tag=tag)
-                except ObjectNotFound:
-                    record = Tag(tag=tag)
+            tag_ids = self._convert_tags(tags)
 
-                tag_ids.append(record)
+            self._log.debug('Tags (as Tags): {tags}'.format(tags=tag_ids))
 
             # save the image
             Image(title=title,
@@ -114,7 +103,7 @@ class ImageView(FlaskView):
                   created_at=created_at,
                   filename=filename)
 
-        raise NotImplemented
+        return jsonify(status='OK')
 
     @Auth()
     def put(self, image_id):
@@ -125,3 +114,31 @@ class ImageView(FlaskView):
     def delete(self, image_id):
         """Delete an image."""
         raise NotImplemented
+
+    def _strip_tags(self, tags):
+        """Make sure the tags are correct."""
+        if not tags:
+            raise TagalleryMissingFieldException('tags')
+
+        tags = set([tag.strip() for tag in tags.split(',') if tag.strip()])
+        if not tags:
+            # there are tags, but they are empty, which basically means the
+            # user just send a bunch of spaces, which is not valid
+            raise TagalleryMissingFieldException('tags')
+
+        self._log.debug('Tags: {tags}'.format(tags=tags))
+        return tags
+
+    def _convert_tags(self, tags):
+        """Conver the (str) tags to (Tag) tags."""
+        tag_ids = []
+        for tag in tags:
+            try:
+                record = Tag.get(tag=tag)
+                if not record:
+                    raise ObjectNotFound(Tag, 'tag')
+            except ObjectNotFound:
+                record = Tag(tag=tag)
+
+            tag_ids.append(record)
+        return tag_ids
