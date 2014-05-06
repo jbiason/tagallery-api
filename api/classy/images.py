@@ -30,6 +30,7 @@ from flask import current_app
 from flask.ext.classy import FlaskView
 
 from pony.orm import db_session
+from pony.orm import ObjectNotFound
 
 from api.server import Image
 from api.server import Tag
@@ -94,7 +95,7 @@ class ImageView(FlaskView):
         created_at = datetime.datetime.utcnow()
         final = os.path.join(partition(created_at),
                              filename)
-        shutil.move(in_queue, final)
+        # shutil.move(in_queue, final)
 
         with db_session:
             # convert the tags to their ids

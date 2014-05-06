@@ -19,29 +19,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import inspect
 import os
-import os.path
 
 from StringIO import StringIO
 
-from base import TagalleryTests
+from base_image import BaseImage
 
 
-class QueueTests(TagalleryTests):
+class QueueTests(BaseImage):
     """Tests for the queue management."""
-
-    @property
-    def path(self):
-        """Return the path for this file."""
-        return os.path.dirname(inspect.getsourcefile(self.__class__))
-
-    def setUp(self):
-        self.queue_dir = os.path.join(self.path, 'images')
-        super(QueueTests, self).setUp(QUEUE_DIR=self.queue_dir)
-        self.user_token = self.add_user(with_token=True)
-        self.test_image = 'riker.gif'
-        return
 
     def tearDown(self):
         super(QueueTests, self).tearDown()
