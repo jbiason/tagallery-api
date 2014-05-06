@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
+from datetime import date
 
 from flask import Flask
 
@@ -46,7 +46,7 @@ db = orm.Database("sqlite", app.config['SQLITE_FILENAME'], create_db=True)
 class Image(db.Entity):
     """Image storage."""
     #: image id
-    id = orm.PrimaryKey(int)
+    id = orm.PrimaryKey(int, auto=True)
 
     #: title for the image
     title = orm.Optional(unicode)
@@ -55,16 +55,21 @@ class Image(db.Entity):
     tags = orm.Set("Tag")
 
     #: date when the image was added to the database (not upload date)
-    created_at = orm.Required(datetime)
+    created_at = orm.Required(date)
 
     #: filename; does not include the image directory or the partitioning
     filename = orm.Required(str)
+
+    #: constrain: since we store all images in a date in the same directory,
+    #: we can't store the same image (at least, with the same name) in the
+    #: same day.
+    orm.composite_key(created_at, filename)
 
 
 class Tag(db.Entity):
     """Image tags."""
     #: tag id
-    id = orm.PrimaryKey(int)
+    id = orm.PrimaryKey(int, auto=True)
 
     #: the tag itself
     tag = orm.Required(unicode)
