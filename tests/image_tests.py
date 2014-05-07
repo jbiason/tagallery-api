@@ -111,5 +111,13 @@ class ImageTests(BaseImage):
         self.add_to_images('riker.gif', tags=['gif', 'riker'],
                            target_filename='riker1.gif')
         rv = self.get('/image/')
-        self.fail(rv.data)
+        self.assertJSONOk(rv)
+
+        data = json.loads(rv.data)
+        self.assertTrue(len(data['images']) == 2)
+
+        # because riker1 was created last, it should be the first in the
+        # results
+        self.assertTrue(data['images'][0]['filename'] == 'riker1.gif')
+        self.assertTrue(data['images'][1]['filename'] == 'riker.gif')
         return

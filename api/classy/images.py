@@ -70,7 +70,7 @@ class ImageView(FlaskView):
             record['url'] = url_for('ImageView:raw', image_id=image.id)
             result.append(record)
 
-        return jsonify(status='ok',
+        return jsonify(status='OK',
                        images=result)
 #   select
 #       images.title
