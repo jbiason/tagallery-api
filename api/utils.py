@@ -66,7 +66,7 @@ def partition(date, base=None):
 
     try:
         os.makedirs(directory)
-    except IOError:
+    except OSError:
         pass        # probably already exists, that's ok
 
     return directory

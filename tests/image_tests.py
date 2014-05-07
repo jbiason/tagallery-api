@@ -108,6 +108,8 @@ class ImageTests(BaseImage):
     def test_index(self):
         """Try to get the index."""
         self.add_to_images('riker.gif', tags=['gif', 'riker'])
+        self.add_to_images('riker.gif', tags=['gif', 'riker'],
+                           target_filename='riker1.gif')
         rv = self.get('/image/')
         self.fail(rv.data)
         return

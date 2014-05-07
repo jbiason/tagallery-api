@@ -69,15 +69,16 @@ class BaseImage(TagalleryTests):
         shutil.copy(templates, self.queue_dir)
         return
 
-    def add_to_images(self, filename, title=None, tags=None):
+    def add_to_images(self, source_filename, title=None, tags=None,
+                      target_filename=None):
         """Add an image to the final directory."""
-        template = os.path.join(self.path, 'images', filename)
+        template = os.path.join(self.path, 'images', source_filename)
         if not os.path.exists(template):
             return
 
         created_at = datetime.date.today()
         final = os.path.join(partition(created_at, self.image_dir),
-                             filename)
+                             target_filename or source_filename)
         shutil.copy(template, final)
 
         with db_session:
@@ -91,7 +92,7 @@ class BaseImage(TagalleryTests):
             Image(title=title or '',
                   tags=tag_ids,
                   created_at=created_at,
-                  filename=filename)
+                  filename=target_filename or source_filename)
         return
 
     def _destroy_dirs(self):
