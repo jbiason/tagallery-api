@@ -22,16 +22,24 @@
 import crypt
 import uuid
 import os
+import logging
 
 from functools import wraps
 
 from flask import request
 from flask import current_app
 
+from bson.objectid import ObjectId
+
+from mongoengine.base import BaseList
+
 from api.database import User
 
 from api.exceptions import TagalleryMissingLoginInformationException
 from api.exceptions import TagalleryInvalidTokenException
+
+
+LOG = logging.getLogger('api.utils')
 
 
 def crypto(username, password):
@@ -70,6 +78,28 @@ def partition(date, base=None):
     return directory
 
 
+def mongoengine_to_dict(doc):
+    """Convert a mongoengine document to a python dictionary."""
+    result = {}
+    # LOG.debug('Doc: {doc}'.format(doc=doc))
+    for field in doc:
+        value = getattr(doc, field)
+        # LOG.debug('field: {field}/{value}'.format(
+        #     field=field, value=value))
+
+        if isinstance(value, BaseList):
+            records = []
+            for record in value:
+                records.append(record)
+            value = records
+
+        elif isinstance(value, ObjectId):
+            value = str(value)
+
+        result[field] = value
+    return result
+
+
 class Auth(object):
     """Decorator for forcing authentication in the request."""
     def __call__(self, func):
@@ -87,6 +117,6 @@ class Auth(object):
 
             result = func(*args, **kwargs)
             user.last_token = str(uuid.uuid4())
-            result.headers.add('X-NextToken', user.token)
+            result.headers.add('X-NextToken', user.last_token)
             return result
         return check_auth

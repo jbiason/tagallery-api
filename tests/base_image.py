@@ -78,10 +78,11 @@ class BaseImage(TagalleryTests):
                              target_filename or source_filename)
         shutil.copy(template, final)
 
-        Image(title=title or '',
-              tags=tags,
-              created_at=created_at,
-              filename=target_filename or source_filename)
+        image = Image(title=title or '',
+                      tags=tags,
+                      created_at=created_at,
+                      filename=target_filename or source_filename)
+        image.save()
         return
 
     def _destroy_dirs(self):

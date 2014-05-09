@@ -27,7 +27,7 @@ import shutil
 from flask import request
 from flask import current_app
 from flask import jsonify
-# from flask import url_for
+from flask import url_for
 from flask import send_from_directory
 
 from flask.ext.classy import FlaskView
@@ -36,6 +36,7 @@ from api.database import Image
 
 from api.utils import Auth
 from api.utils import partition
+from api.utils import mongoengine_to_dict
 
 from api.exceptions import TagalleryRequestMustBeJSONException
 from api.exceptions import TagalleryMissingFieldException
@@ -54,12 +55,13 @@ class ImageView(FlaskView):
         """List the images."""
         # after = request.values.get('after')
         # per_page = request.values.get('ipp', 15)
-        # tags = request.values.get('tags', '').split(',')
+        tags = request.values.get('tags', '').split(',')
 
         result = []
-        for image in Image.objects().order_by('-created_at'):
-            # record['url'] = url_for('ImageView:raw', image_id=image.id)
-            result.append(image)
+        for image in Image.objects(tags__all=tags).order_by('-created_at'):
+            record = mongoengine_to_dict(image)
+            record['url'] = url_for('ImageView:raw', image_id=image.id)
+            result.append(record)
 
         return jsonify(status='OK',
                        images=result)
