@@ -28,9 +28,7 @@ from functools import wraps
 from flask import request
 from flask import current_app
 
-from pony.orm import ObjectNotFound
-
-from api.server import User
+from api.database import User
 
 from api.exceptions import TagalleryMissingLoginInformationException
 from api.exceptions import TagalleryInvalidTokenException
@@ -83,11 +81,8 @@ class Auth(object):
             # request informatino requires that the user in the basic auth is,
             # actually, the token
             token = request.authorization.username
-            try:
-                user = User.get(token=token)
-                if not user:
-                    raise ObjectNotFound(user, 'token')
-            except ObjectNotFound:
+            user = User.objects(token=token).first()
+            if not user:
                 raise TagalleryInvalidTokenException()
 
             result = func(*args, **kwargs)

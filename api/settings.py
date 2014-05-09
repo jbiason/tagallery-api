@@ -41,5 +41,5 @@ class Settings(object):
     #: directory
     IMAGE_EXTENSIONS = ['jpeg', 'jpg', 'gif', 'png']
 
-    #: Name for the SQLite file
-    SQLITE_FILENAME = 'tagallery.sqlite'
+    #: Mongo Database
+    MONGO_DB = 'tagallery'

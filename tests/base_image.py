@@ -24,14 +24,11 @@ import os.path
 import shutil
 import datetime
 
-from pony.orm import db_session
-
 from base import TagalleryTests
 
 from api.utils import partition
 
-from api.server import Image
-from api.server import Tag
+from api.database import Image
 
 
 class BaseImage(TagalleryTests):
@@ -76,23 +73,15 @@ class BaseImage(TagalleryTests):
         if not os.path.exists(template):
             return
 
-        created_at = datetime.date.today()
+        created_at = datetime.datetime.utcnow()
         final = os.path.join(partition(created_at, self.image_dir),
                              target_filename or source_filename)
         shutil.copy(template, final)
 
-        with db_session:
-            tag_ids = []
-            for tag in tags:
-                tag_rec = Tag.get(tag=tag)
-                if not tag_rec:
-                    tag_rec = Tag(tag=tag)
-                tag_ids.append(tag_rec)
-
-            Image(title=title or '',
-                  tags=tag_ids,
-                  created_at=created_at,
-                  filename=target_filename or source_filename)
+        Image(title=title or '',
+              tags=tags,
+              created_at=created_at,
+              filename=target_filename or source_filename)
         return
 
     def _destroy_dirs(self):

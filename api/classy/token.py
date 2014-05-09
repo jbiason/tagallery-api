@@ -27,10 +27,7 @@ from flask import jsonify
 
 from flask.ext.classy import FlaskView
 
-from pony.orm import ObjectNotFound
-from pony.orm import db_session
-
-from api.server import User
+from api.database import User
 
 from api.utils import crypto
 
@@ -45,7 +42,6 @@ class TokenView(FlaskView):
         super(TokenView, self).__init__(*args, **kwargs)
         self._log = logging.getLogger('api.classy.token')
 
-    @db_session
     def get(self):
         """Return the access token. User and password must be present in the
         headers via Basic Auth."""
@@ -60,11 +56,8 @@ class TokenView(FlaskView):
             raise TagalleryMissingLoginInformationException()
 
         cyphered = crypto(auth.username, auth.password)
-        try:
-            user = User.get(login=auth.username, password=cyphered)
-            if not user:
-                raise ObjectNotFound(User, 'login')
-        except ObjectNotFound:
+        user = User.objects(login=auth.username, password=cyphered).first()
+        if not user:
             self._log.debug('Cant find the user')
             raise TagalleryNoSuchUserException()
 
@@ -72,6 +65,7 @@ class TokenView(FlaskView):
 
         token = str(uuid.uuid4())
         user.token = token
+        user.save()
 
         return jsonify(status='OK',
                        token=token)

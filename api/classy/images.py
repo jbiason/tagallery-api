@@ -27,18 +27,12 @@ import shutil
 from flask import request
 from flask import current_app
 from flask import jsonify
-from flask import url_for
+# from flask import url_for
 from flask import send_from_directory
 
 from flask.ext.classy import FlaskView
 
-from pony.orm import db_session
-from pony.orm import select
-from pony.orm import ObjectNotFound
-from pony.orm import desc
-
-from api.server import Image
-from api.server import Tag
+from api.database import Image
 
 from api.utils import Auth
 from api.utils import partition
@@ -56,7 +50,6 @@ class ImageView(FlaskView):
         self._log = logging.getLogger('api.classy.images')
         return
 
-    @db_session
     def index(self):
         """List the images."""
         # after = request.values.get('after')
@@ -64,11 +57,9 @@ class ImageView(FlaskView):
         # tags = request.values.get('tags', '').split(',')
 
         result = []
-        for image in select(image for image in Image)\
-                .order_by(desc(Image.created_at)):
-            record = image.to_json()
-            record['url'] = url_for('ImageView:raw', image_id=image.id)
-            result.append(record)
+        for image in Image.objects().order_by('-created_at'):
+            # record['url'] = url_for('ImageView:raw', image_id=image.id)
+            result.append(image)
 
         return jsonify(status='OK',
                        images=result)
@@ -106,6 +97,10 @@ class ImageView(FlaskView):
 
         tags = json.get('tags')
         tags = self._strip_tags(json.get('tags'))
+        if not tags:
+            raise TagalleryMissingFieldException('tags')
+
+        self._log.debug('Tags (as Tags): {tags}'.format(tags=tags))
 
         # optional fields
         title = json.get('title', '')
@@ -123,17 +118,11 @@ class ImageView(FlaskView):
                              filename)
         shutil.move(in_queue, final)
 
-        with db_session:
-            # convert the tags to their ids
-            tag_ids = self._convert_tags(tags)
-
-            self._log.debug('Tags (as Tags): {tags}'.format(tags=tag_ids))
-
-            # save the image
-            Image(title=title,
-                  tags=tag_ids,
-                  created_at=created_at,
-                  filename=filename)
+        # save the image
+        Image(title=title,
+              tags=tags,
+              created_at=created_at,
+              filename=filename)
 
         return jsonify(status='OK')
 
@@ -166,17 +155,3 @@ class ImageView(FlaskView):
 
         self._log.debug('Tags: {tags}'.format(tags=tags))
         return tags
-
-    def _convert_tags(self, tags):
-        """Conver the (str) tags to (Tag) tags."""
-        tag_ids = []
-        for tag in tags:
-            try:
-                record = Tag.get(tag=tag)
-                if not record:
-                    raise ObjectNotFound(Tag, 'tag')
-            except ObjectNotFound:
-                record = Tag(tag=tag)
-
-            tag_ids.append(record)
-        return tag_ids

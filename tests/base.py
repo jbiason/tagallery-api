@@ -24,14 +24,12 @@ import uuid
 import json
 import base64
 
-from pony.orm import db_session
-from pony.orm import commit
-
 from api import server
 
 from api import exceptions
 
-from api.server import User
+from api.database import User
+from api.database import Image
 
 from api.utils import crypto
 
@@ -50,21 +48,24 @@ class TagalleryTests(unittest.TestCase):
     #  Test setup and teardown
     # ------------------------------------------------------------
     def setUp(self, **kwargs):
-        server.db.drop_all_tables(with_all_data=True)
-
-        server.app.config['SQLITE_FILENAME'] = ':memory:'
+        server.app.config['MONGO_DB'] = 'tagallery-test'
         server.app.config['TESTING'] = True
         server.app.config['DEBUG'] = True
 
         if kwargs:
             server.app.config.update(**kwargs)
 
-        server.db.create_tables()
+        server.init_db()
+
+        User.drop_collection()
+        Image.drop_collection()
 
         self.app = server.app.test_client()
         return
 
     def tearDown(self):
+        User.drop_collection()
+        Image.drop_collection()
         return
 
     # ------------------------------------------------------------
@@ -74,12 +75,11 @@ class TagalleryTests(unittest.TestCase):
                  with_token=False):
         """Add a new user directly into the database."""
         token = None
-        with db_session:
-            user = User(login=username, password=crypto(username, password))
-            if with_token:
-                token = str(uuid.uuid4())
-                user.token = token
-            commit()
+        user = User(login=username, password=crypto(username, password))
+        if with_token:
+            token = str(uuid.uuid4())
+            user.token = token
+        user.save()
         return token
 
     def get(self, url, token=None):

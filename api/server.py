@@ -19,11 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date
-
 from flask import Flask
+from flask import current_app
 
-from pony import orm
+from mongoengine import connect
 
 from .settings import Settings
 
@@ -36,78 +35,6 @@ app = Flask(__name__)
 app.config.from_object(Settings)
 app.config.from_envvar('TAGALLERY_API_CONFIG', True)
 
-
-# ----------------------------------------------------------------------
-#  Database
-# ----------------------------------------------------------------------
-db = orm.Database("sqlite", app.config['SQLITE_FILENAME'], create_db=True)
-
-
-class Image(db.Entity):
-    """Image storage."""
-    #: image id
-    id = orm.PrimaryKey(int, auto=True)
-
-    #: title for the image
-    title = orm.Optional(unicode)
-
-    #: list of tags for the image
-    tags = orm.Set("Tag")
-
-    #: date when the image was added to the database (not upload date)
-    created_at = orm.Required(date)
-
-    #: filename; does not include the image directory or the partitioning
-    filename = orm.Required(str)
-
-    #: constrain: since we store all images in a date in the same directory,
-    #: we can't store the same image (at least, with the same name) in the
-    #: same day.
-    orm.composite_key(created_at, filename)
-
-    def to_json(self):
-        return {'id': self.id,
-                'title': self.title,
-                'filename': self.filename,
-                'tags': [tag.to_json() for tag in self.tags]}
-
-
-class Tag(db.Entity):
-    """Image tags."""
-    #: tag id
-    id = orm.PrimaryKey(int, auto=True)
-
-    #: the tag itself
-    tag = orm.Required(unicode)
-
-    #: images with this tag
-    images = orm. Set(Image)
-
-    def to_json(self):
-        return {'id': self.id,
-                'tag': self.tag}
-
-
-class User(db.Entity):
-    """Users."""
-    #: login/username
-    login = orm.Required(str, unique=True)
-
-    #: password
-    password = orm.Required(str)
-
-    #: last token issued to this user
-    token = orm.Optional(str)
-
-
-if app.config['DEBUG']:
-    orm.sql_debug(True)
-
-db.generate_mapping(create_tables=True)
-
-app.wsgi_app = orm.db_session(app.wsgi_app)
-
-
 # ----------------------------------------------------------------------
 #  Blueprints/Classy
 # ----------------------------------------------------------------------
@@ -118,6 +45,20 @@ from classy.images import ImageView
 TokenView.register(app)
 QueueView.register(app)
 ImageView.register(app)
+
+
+# ----------------------------------------------------------------------
+#  Start the db before the first request
+# ----------------------------------------------------------------------
+@app.before_first_request
+def first_request():
+    init_db()
+    return
+
+
+def init_db():
+    connect(current_app.config['MONGO_DB'])
+    return
 
 
 # ----------------------------------------------------------------------
