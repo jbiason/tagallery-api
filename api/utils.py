@@ -81,12 +81,12 @@ class Auth(object):
             # request informatino requires that the user in the basic auth is,
             # actually, the token
             token = request.authorization.username
-            user = User.objects(token=token).first()
+            user = User.objects(last_token=token).first()
             if not user:
                 raise TagalleryInvalidTokenException()
 
             result = func(*args, **kwargs)
-            user.token = str(uuid.uuid4())
+            user.last_token = str(uuid.uuid4())
             result.headers.add('X-NextToken', user.token)
             return result
         return check_auth

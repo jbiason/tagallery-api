@@ -78,7 +78,7 @@ class TagalleryTests(unittest.TestCase):
         user = User(login=username, password=crypto(username, password))
         if with_token:
             token = str(uuid.uuid4())
-            user.token = token
+            user.last_token = token
         user.save()
         return token
 
