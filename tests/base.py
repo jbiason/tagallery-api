@@ -55,7 +55,7 @@ class TagalleryTests(unittest.TestCase):
         if kwargs:
             server.app.config.update(**kwargs)
 
-        server.init_db()
+        server.init_db('tagallery-test')
 
         User.drop_collection()
         Image.drop_collection()

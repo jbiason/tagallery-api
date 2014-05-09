@@ -52,12 +52,12 @@ ImageView.register(app)
 # ----------------------------------------------------------------------
 @app.before_first_request
 def first_request():
-    init_db()
+    init_db(current_app.config['MONGO_DB'])
     return
 
 
-def init_db():
-    connect(current_app.config['MONGO_DB'])
+def init_db(db_name):
+    connect(db_name)
     return
 
 
