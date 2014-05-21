@@ -23,6 +23,7 @@ import inspect
 import os.path
 import shutil
 import datetime
+import logging
 
 from base import TagalleryTests
 
@@ -38,6 +39,10 @@ class BaseImage(TagalleryTests):
     def path(self):
         """Return the path for this file."""
         return os.path.dirname(inspect.getsourcefile(self.__class__))
+
+    def __init__(self, *args, **kwargs):
+        super(BaseImage, self).__init__(*args, **kwargs)
+        self.log = logging.getLogger('tests.base_image')
 
     def setUp(self):
         self.queue_dir = os.path.join(self.path, 'queue')
@@ -83,6 +88,7 @@ class BaseImage(TagalleryTests):
                       created_at=created_at,
                       filename=target_filename or source_filename)
         image.save()
+        self.log.debug('Added image {pk}'.format(pk=image.pk))
         return
 
     def _destroy_dirs(self):

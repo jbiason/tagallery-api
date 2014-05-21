@@ -48,17 +48,24 @@ class ImageView(FlaskView):
 
     def __init__(self, *args, **kwargs):
         super(ImageView, self).__init__(*args, **kwargs)
-        self._log = logging.getLogger('api.classy.images')
+        self.log = logging.getLogger('api.classy.images')
         return
 
     def index(self):
         """List the images."""
         # after = request.values.get('after')
         # per_page = request.values.get('ipp', 15)
-        tags = request.values.get('tags', '').split(',')
+        tags = request.values.get('tags')
+        self.log.debug('Tags = {tags}'.format(tags=tags))
+        params = {}
+        if tags:
+            tags = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            if tags:
+                params['tags__all'] = tags
 
         result = []
-        for image in Image.objects(tags__all=tags).order_by('-created_at'):
+        self.log.debug('Query params: {params}'.format(params=params))
+        for image in Image.objects(**params).order_by('-created_at'):
             record = mongoengine_to_dict(image)
             record['url'] = url_for('ImageView:raw', image_id=image.id)
             result.append(record)
@@ -102,7 +109,7 @@ class ImageView(FlaskView):
         if not tags:
             raise TagalleryMissingFieldException('tags')
 
-        self._log.debug('Tags (as Tags): {tags}'.format(tags=tags))
+        self.log.debug('Tags (as Tags): {tags}'.format(tags=tags))
 
         # optional fields
         title = json.get('title', '')
@@ -155,5 +162,5 @@ class ImageView(FlaskView):
             # user just send a bunch of spaces, which is not valid
             raise TagalleryMissingFieldException('tags')
 
-        self._log.debug('Tags: {tags}'.format(tags=tags))
+        self.log.debug('Tags: {tags}'.format(tags=tags))
         return tags
