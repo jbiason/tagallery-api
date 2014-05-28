@@ -35,13 +35,16 @@ def adduser(user, password):
 
     from api.server import User
 
-    from pony.orm import db_session
-    from pony.orm import commit
+    # from pony.orm import db_session
+    # from pony.orm import commit
 
-    with db_session:
-        User(login=user, password=crypto(user,
-                                         password))
-        commit()
+    # with db_session:
+    #     User(login=user, password=crypto(user,
+    #                                      password))
+    #     commit()
+
+    user = User(login=user, password=crypto(user, password))
+    user.save()
 
 
 # running
