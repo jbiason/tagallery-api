@@ -41,7 +41,6 @@ invalidated.
     
             X-Tagallery-Token: accesstoken
         
-
 + Response 200 (application/json)
 
         {
@@ -50,6 +49,14 @@ invalidated.
                 { "id": 1, "jpg" },
                 { "id": 2, "gif" }
             ]
+        }
+
++ Response 401 (application/json)
+
+        {
+            "meta": { "status": "ERROR",
+                      "error": "INVALID_TOKEN",
+                      "message": "Invalid access token" }
         }
 
 ## Single tag manipulation [/tag/{id}]
@@ -96,7 +103,7 @@ invalidated.
     
             { "name": "new tag name" }
             
-+ Response 200
++ Response 200 (application/json)
 
         {
             "meta": { "status": "OK" },
@@ -112,6 +119,65 @@ invalidated.
             "meta": { "status": "ERROR",
                       "error": "INVALID_TOKEN",
                       "message": "Invalid access token" }
+        }
+        
++ Response 404 (application/json)
+
+        {
+            "meta": { "status": "ERROR", 
+                      "error": "UNKNOWN_TAG",
+                      "message": "The tag doesn't exist" }
+        }
+
+### Delete a note [DELETE]
+
+Optionally, the request may contain the ID of another tag, making all images
+that contain the tag {id} to be retagged with the new tag (this basically _merges_
+two tags). In case of either tag doesn't exist, no changes will occur.
+
++ Request (application/json)
+
+    + Header
+    
+            X-Tagallery-Token: accesstoken
+
++ Response 200 (application/json)
+
+        {
+            "meta": { "status": "OK" }
+        }
+        
++ Request (application/json)
+    
+    + Header
+    
+            X-Tagallery-Token: accesstoken
+
+    + Body
+    
+            { "merge_with": 2 }
+            
++ Response 200 (application/json)
+
+        {
+            "meta": { "status": "OK",
+                      "merged_with": 2 }
+        }
+        
++ Response 401 (application/json)
+
+        {
+            "meta": { "status": "ERROR",
+                      "error": "INVALID_TOKEN",
+                      "message": "Invalid access token" }
+        }
+        
++ Response 404 (application/json)
+
+        {
+            "meta": { "status": "ERROR", 
+                      "error": "UNKNOWN_TAG",
+                      "message": "The tag doesn't exist" }
         }
 
 ## Note [/notes/{id}]
