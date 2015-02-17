@@ -4,10 +4,13 @@ FORMAT: 1A
 Tagallery is a tag-based web gallery.
 
 # API
-All calls require a token to be accepted. The token has no expiration time and can be
-be used as long as the user wants.
+All calls require a token to be accepted.
 
 ## Token [/token]
+The token has no expiration time and can be be used as long as the user wants.
+Once a new token is requested, any previous token assigned to the user will be
+invalidated.
+
 ### Request an access token [POST]
 + Request (application/json)
 
@@ -21,9 +24,24 @@ be used as long as the user wants.
                 "token": "accesstoken"
             }
         }
+        
++ Response 404 (application/json)
+
+        {
+            "meta": { "status": "ERROR",
+                      "code": "UNKNONW_USER",
+                      "message": "Invalid user or password" }
+        }
 
 ## Tags [/tags]
 ### Get all tags [GET]
++ Request (application/json)
+
+    + Header
+    
+            X-Tagallery-Token: accesstoken
+        
+
 + Response 200 (application/json)
 
         {
