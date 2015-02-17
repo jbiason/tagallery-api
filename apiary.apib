@@ -33,7 +33,7 @@ invalidated.
                       "message": "Invalid user or password" }
         }
 
-## Tags [/tags]
+## Tags [/tag]
 ### Get all tags [GET]
 + Request (application/json)
 
@@ -52,6 +52,8 @@ invalidated.
             ]
         }
 
+## Single tag manipulation [/tag/{id}]
+
 ### Create a tag [POST]
 
 + Request (application/json)
@@ -69,7 +71,38 @@ invalidated.
         {
             "meta": { "status": "OK" },
             "data": {
-                "id": 1
+                "id": 1,
+                "name": "tag name"
+            }
+        }
+        
++ Response 401 (application/json)
+
+        {
+            "meta": { "status": "ERROR",
+                      "error": "INVALID_TOKEN",
+                      "message": "Invalid access token" }
+        }
+        
+### Update a tag [PUT]
+
++ Request (application/json)
+
+    + Header
+    
+            X-Tagallery-Token: accesstoken
+            
+    + Body
+    
+            { "name": "new tag name" }
+            
++ Response 200
+
+        {
+            "meta": { "status": "OK" },
+            "data": {
+                "id": 1,
+                "name": "tag name"
             }
         }
         
