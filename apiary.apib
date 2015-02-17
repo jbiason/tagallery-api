@@ -1,20 +1,38 @@
 FORMAT: 1A
 
 # Tagallery
-Notes API is a *short texts saving* service similar to its physical paper presence on your table.
+Tagallery is a tag-based web gallery.
 
-# Group Notes
-Notes related resources of the **Notes API**
+# API
+All calls require a token to be accepted. The token has no expiration time and can be
+be used as long as the user wants.
 
-## Notes Collection [/notes]
-### List all Notes [GET]
+## Token [/token]
+### Request an access token [POST]
++ Request (application/json)
+
+        { "username": "username", "password": "password" }
+        
 + Response 200 (application/json)
 
-        [{
-          "id": 1, "title": "Jogging in park"
-        }, {
-          "id": 2, "title": "Pick-up posters from post-office"
-        }]
+        {
+            "meta": { "status": "OK" },
+            "data": {
+                "token": "accesstoken"
+            }
+        }
+
+## Tags [/tags]
+### Get all tags [GET]
++ Response 200 (application/json)
+
+        {
+            "meta": {"status": "OK" },
+            "data": [
+                { "id": 1, "jpg" },
+                { "id": 2, "gif" }
+            ]
+        }
 
 ### Create a Note [POST]
 + Request (application/json)
