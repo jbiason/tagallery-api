@@ -52,14 +52,34 @@ invalidated.
             ]
         }
 
-### Create a Note [POST]
+### Create a tag [POST]
+
 + Request (application/json)
 
-        { "title": "Buy cheese and bread for breakfast." }
+    + Header
+    
+            X-Tagallery-Token: accesstoken
+            
+    + Body
+    
+            { "name": "tag name" }
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
 
-        { "id": 3, "title": "Buy cheese and bread for breakfast." }
+        {
+            "meta": { "status": "OK" },
+            "data": {
+                "id": 1
+            }
+        }
+        
++ Response 401 (application/json)
+
+        {
+            "meta": { "status": "ERROR",
+                      "error": "INVALID_TOKEN",
+                      "message": "Invalid access token" }
+        }
 
 ## Note [/notes/{id}]
 A single Note object with all its details
