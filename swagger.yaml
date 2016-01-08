@@ -318,28 +318,37 @@ definitions:
       id:
         type: integer
         format: int32
+        description: The ID of the tag
       name:
         type: string
+        description: The tag itself
   Incoming:
     type: object
     properties:
       filename:
         type: string
+        description: Filename of the image in the incoming directory
       url:
         type: string
+        description: URL to access the image
   Image:
     type: object
     properties:
       id:
         type: integer
         format: int64
+        description: Image ID.
       title:
         type: string
+        description: Title for the image; can be empty
       url:
         type: string
+        description: URL to access the image
       thumbnail:
         type: string
+        description: URL to access the thumbnail of the image
       tags:
         type: array
         items:
           $ref: '#/definitions/Tag'
+        description: List of associate tags with the image
